@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -66,15 +67,38 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		while(i<_table.length) {
 			if(_table[i]!=null) {
 				count+=_table[i].size();
+				
+				Iterator<MyEntry<K, V>> it= _table[i].iterator();
+			   
+			        while(it.hasNext()) {
+			        	
+			        	MyEntry<K,V> e= it.next();
+			        	
+			        	if(e.key==null || e.value==null) {
+			        		return _report("Key or value is null");
+			            }
+			        	
+			        	if(hash(e.key)!=i) {
+			        		return _report("Its is in the wrong bucket");
+			        	}
+			        	
+			        	if(duplicate(_table[i],e)) {
+			        		return _report("There is a duplicate");
+			        	}
+			        	
+			        	
+					}
+				
 			}
 			
-		//Object 	_table[i].toArray();
-			
+		
+		
 			i++;
 		}
 		if(count!=_numItems) {
 			return _report("Count is not right");
 		}
+		
 		
 		
 		
@@ -86,6 +110,24 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		return true;
 	}
 	
+	private boolean duplicate(Collection<MyEntry<K, V>> collection, MyEntry<K, V> e) {
+		Iterator<MyEntry<K, V>> it = collection.iterator();
+		int count=0;
+		while(it.hasNext()) {
+			MyEntry<K,V> en=it.next();
+			
+			if(en.key.equals(e.key) || en.value.equals(e.value)) {
+				count++;
+			}
+			
+			if(count==2) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 	private static int DEFAULT_CAPACITY = 10;
 	private static double LOAD_FACTOR = 0.75;
 	
