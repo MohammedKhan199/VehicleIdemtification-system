@@ -24,6 +24,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	private int _version; // used to check iterator staleness
 	
 	
+	
 	/**	Compute hash code using table size.
 	 * The result must be in the range [0,table.length-1].
 	 * Do NOT either check or depend on the invariant.
@@ -34,7 +35,11 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	private int hash(Object key) {
 		// TODO
-		return 0;
+		if(_table==null || _table.length==0) {
+			return 0;
+		}
+		int n= key.hashCode();
+		return Math.abs(key.hashCode())%(_table.length);
 	}
 	
 	private static boolean _report(String problem) {
@@ -52,6 +57,32 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		//		NB: We only have to check for duplicates within the context of each bucket: Why?
 		// 5. The table never has more than LOAD_FACTOR*_table.length entries
 		// TODO
+		
+		if(_table==null) {
+			return _report("Table is null");
+		}
+		int i=0;
+		int count=0;
+		while(i<_table.length) {
+			if(_table[i]!=null) {
+				count+=_table[i].size();
+			}
+			
+		//Object 	_table[i].toArray();
+			
+			i++;
+		}
+		if(count!=_numItems) {
+			return _report("Count is not right");
+		}
+		
+		
+		
+		if(_numItems>LOAD_FACTOR*_table.length) {
+			return _report("The _numItems is greater than size");
+		}
+		
+		
 		return true;
 	}
 	
@@ -89,6 +120,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	public MyHashTable() {
 		// TODO
+		_table= makeArray(DEFAULT_CAPACITY);
 	}
 	
 	/*
@@ -206,6 +238,30 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			// 2. if next bucket is less than table length then it exists and has entries
 			// TODO
 			// 3. _bucketIt is only null if next bucket == table length
+			if(_version!=_myVersion) {
+				return true;
+			}
+			
+			else {
+				if(!(MyHashTable.this._wellFormed())){
+					
+					return false;
+				}
+				if(_nextBucket<=0 || _nextBucket>_table.length) {
+					return _report("The nextBucket not in range");
+				}
+				
+				if(_nextBucket<_table.length) {
+					if(_table[_nextBucket]==null)
+					  return _report("nextbucket is null");
+					if(_table[_nextBucket].isEmpty()) {
+						return _report("nextbucket is empty");
+					}
+				}
+				if(_bucketIt==null && _nextBucket!=_table.length) {
+					return _report("bucket Iteratore is null but nextbucket!=table.length");
+				}
+			}
 			return true;
 		}
 		
@@ -213,6 +269,21 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 
 		public MyIterator() {
 			// TODO: set fields
+			int set=-1;
+			
+			for(int i=0;i<_table.length;i++) {
+				if(_table[i]!=null && set<0) {
+					_bucketIt= _table[i].iterator();
+					set=i;
+				}
+				
+				if(set!=i && _table!=null) {
+					_nextBucket=i;
+					break;
+				}
+			}
+		
+		  
 		}
 		
 		@Override
