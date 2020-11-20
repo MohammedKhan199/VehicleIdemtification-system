@@ -183,6 +183,21 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	@Override
 	public V get(Object o) {
 		// TODO
+        if(o==null) throw new IllegalArgumentException();
+		
+		K key= asKey(o);
+		
+		int index=hash(key);
+		if(_table[index]==null || key==null) {
+			return null;
+		}
+		Iterator<MyEntry<K, V>> it= _table[index].iterator();
+		while(it.hasNext()) {
+			MyEntry<K,V> e= it.next();
+			if(e.key.equals(key)) {
+				return e.value;
+			}
+		}
 		
 		return null;
 
@@ -212,6 +227,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			_table[index]=new ArrayList<>();
 			_table[index].add(newentry);
 			_numItems++;
+			_version++;
 			return null;
 		}
 		else {
@@ -221,12 +237,14 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 				if(e.key.equals(key)) {
 					V oldvalue=e.value;
 					e.setValue(value);
+					_version++;
 					return oldvalue;
 				}
 			}
 			_table[index].add(newentry);
 			_numItems++;
 		}
+		_version++;
 		assert _wellFormed() : "invariant broken at end of put";
 		return null;
 	}
@@ -240,6 +258,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	public V remove(Object o) {
 		// TODO
+		
 		return null;
 	}
 	
