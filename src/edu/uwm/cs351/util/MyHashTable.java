@@ -258,7 +258,28 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	public V remove(Object o) {
 		// TODO
+		if(o==null)throw new IllegalArgumentException();
 		
+		K key= asKey(o);
+		int index=hash(key);
+		if(key==null || _table[index]==null) {
+			_version++;
+			return null;
+		}
+		
+		Iterator<MyEntry<K,V>> it = _table[index].iterator();
+		
+		while(it.hasNext()) {
+			MyEntry<K,V> e= it.next();
+			if(e.key.equals(key)) {
+				V value=e.value;
+				_table[index].remove(e);
+				_numItems--;
+				_version++;
+				return value;
+			}
+		}
+	
 		return null;
 	}
 	
@@ -385,18 +406,21 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 
 		public MyIterator() {
 			// TODO: set fields
-			int set=-1;
+			int i=0;
 			
-			for(int i=0;i<_table.length;i++) {
-				if(_table[i]!=null && !_table[i].isEmpty() && set<0) {
-					_bucketIt= _table[i].iterator();
-					set=i;
-				}
-				
-				if(set!=i && _table!=null && !_table[i].isEmpty()) {
-					_nextBucket=i;
+			while(i<_table.length) {
+				if(_table[i]!=null) {
+					_bucketIt=_table[i].iterator();
 					break;
 				}
+				i++;
+			}
+			_nextBucket=i+1;
+			while(_nextBucket<_table.length) {
+				if(_table[_nextBucket]!=null) {
+					break;
+				}
+				_nextBucket++;
 			}
 		
 		  
@@ -411,17 +435,29 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override
 		public Entry<K,V> next() {
 			// TODO
-              Entry<K,V> e=_bucketIt.next();
-			  if(_bucketIt.hasNext()) {
+			Entry<K,V> e=null;
+			if(_bucketIt!=null &&_bucketIt.hasNext())
+                e =_bucketIt.next();
+			  if(_bucketIt!=null && _bucketIt.hasNext()) {
 				  return e;
 			  }
 			  else {
 			
 			        if(hasNext()) {
+			        	_bucketIt=_table[_nextBucket].iterator();
+			        	_nextBucket+=1;
+			        	while(_nextBucket<_table.length) {
+			        		if(_table[_nextBucket]!=null) {
+			        			break;
+			        		}
+			        		_nextBucket++;
+			        	}
 			        	
 			        }
-			    }
-			return null;
+		               
+		         }
+			   return _bucketIt.next();
+			
 		}
 
 		@Override
