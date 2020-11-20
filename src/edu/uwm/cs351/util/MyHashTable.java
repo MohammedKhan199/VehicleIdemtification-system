@@ -183,6 +183,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	@Override
 	public V get(Object o) {
 		// TODO
+		
 		return null;
 
 	}
@@ -196,6 +197,37 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	public V put(K key, V value) {
 		// TODO
+		assert _wellFormed() : "invariant broken at beginning of put";
+		if(key==null || value==null) {
+			throw new IllegalArgumentException();
+		}
+		
+		
+		if(_numItems+1>LOAD_FACTOR*_table.length) {
+			rehash();
+		}
+		MyEntry<K,V> newentry =new MyEntry<>(key,value);
+		int index=hash(key);
+		if(_table[index]==null) {
+			_table[index]=new ArrayList<>();
+			_table[index].add(newentry);
+			_numItems++;
+			return null;
+		}
+		else {
+			Iterator<MyEntry<K,V>> it = _table[index].iterator();
+			while(it.hasNext()) {
+				MyEntry<K,V> e= it.next();
+				if(e.key.equals(key)) {
+					V oldvalue=e.value;
+					e.setValue(value);
+					return oldvalue;
+				}
+			}
+			_table[index].add(newentry);
+			_numItems++;
+		}
+		assert _wellFormed() : "invariant broken at end of put";
 		return null;
 	}
 	
@@ -218,6 +250,29 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	private void rehash() {
 		// TODO: Implement this method
 		// NB: Do not check invariant
+		
+		Collection<MyEntry<K, V>>[] newtable=makeArray(2*_table.length+1);
+		int i=0;
+		Iterator<MyEntry<K, V>> it=null;
+		int index=0;
+		while(i<_table.length) {
+			if(_table[i]!=null) {
+			   it =_table[i].iterator();
+			    while(it.hasNext()) {
+			    	
+			    	MyEntry<K,V> e=it.next();
+					index=Math.abs(e.key.hashCode())%newtable.length;
+					if(newtable[index]==null) {
+						newtable[index]=new ArrayList<>();
+					}
+					newtable[index].add(e);
+				}
+			}
+			i++;
+		}
+		
+		_table=newtable;
+		
 	}
 	
 	private volatile Set<Entry<K, V>> entrySet;
@@ -244,7 +299,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override
 		public int size() {
 			// TODO: AbstractMap utilizes this for its own size() method
-			return 0;
+			return _numItems;
 		}
 		
 		@Override 
@@ -314,12 +369,12 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			int set=-1;
 			
 			for(int i=0;i<_table.length;i++) {
-				if(_table[i]!=null && set<0) {
+				if(_table[i]!=null && !_table[i].isEmpty() && set<0) {
 					_bucketIt= _table[i].iterator();
 					set=i;
 				}
 				
-				if(set!=i && _table!=null) {
+				if(set!=i && _table!=null && !_table[i].isEmpty()) {
 					_nextBucket=i;
 					break;
 				}
@@ -331,12 +386,22 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override
 		public boolean hasNext() {
 			// TODO
-			return false;
+			return _nextBucket!=_table.length;
 		}
 
 		@Override
 		public Entry<K,V> next() {
 			// TODO
+              Entry<K,V> e=_bucketIt.next();
+			  if(_bucketIt.hasNext()) {
+				  return e;
+			  }
+			  else {
+			
+			        if(hasNext()) {
+			        	
+			        }
+			    }
 			return null;
 		}
 
