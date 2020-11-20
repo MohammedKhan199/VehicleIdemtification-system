@@ -12,6 +12,7 @@ import java.util.Set;
 import edu.uwm.cs.junit.LockedTestCase;
 
 /**
+ * **********************MOHAMMED KHAN*********************
  * A simple hash table using Collections for buckets.
  */
 public class MyHashTable<K,V> extends AbstractMap<K,V> {
@@ -171,6 +172,19 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	@Override
 	public boolean containsKey(Object o) {
 		// TODO easy
+		if(o==null)throw new NullPointerException();
+		K key =asKey(o);
+		int index=hash(o);
+		if(_table[index]==null) {
+			return false;
+		}
+		Iterator<MyEntry<K, V>> it= _table[index].iterator();
+		while(it.hasNext()) {
+			MyEntry<K,V> e=it.next();
+			if(e.key.equals(key)) {
+				return true;
+			}
+		}
 		return false;
 	}
 
