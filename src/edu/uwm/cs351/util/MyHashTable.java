@@ -65,7 +65,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		int i=0;
 		int count=0;
 		while(i<_table.length) {
-			if(_table[i]!=null) {
+			if(_table[i]!=null && !_table[i].isEmpty()) {
 				count+=_table[i].size();
 				
 				Iterator<MyEntry<K, V>> it= _table[i].iterator();
@@ -279,7 +279,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 				return value;
 			}
 		}
-	
+	    _version++;
 		return null;
 	}
 	
@@ -407,9 +407,10 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		public MyIterator() {
 			// TODO: set fields
 			int i=0;
+			_myVersion=_version;
 			
 			while(i<_table.length) {
-				if(_table[i]!=null) {
+				if(_table[i]!=null &&!_table[i].isEmpty()) {
 					_bucketIt=_table[i].iterator();
 					break;
 				}
@@ -417,7 +418,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			}
 			_nextBucket=i+1;
 			while(_nextBucket<_table.length) {
-				if(_table[_nextBucket]!=null) {
+				if(_table[_nextBucket]!=null && !_table[_nextBucket].isEmpty()) {
 					break;
 				}
 				_nextBucket++;
@@ -429,18 +430,23 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override
 		public boolean hasNext() {
 			// TODO
+			if(_version!=_myVersion) {
+				throw new ConcurrentModificationException();
+			}
 			return _nextBucket!=_table.length;
 		}
 
 		@Override
 		public Entry<K,V> next() {
 			// TODO
+			if(_version!=_myVersion) {
+				throw new ConcurrentModificationException();
+			}
 			Entry<K,V> e=null;
-			if(_bucketIt!=null &&_bucketIt.hasNext())
+			if(_bucketIt!=null &&_bucketIt.hasNext()) {
                 e =_bucketIt.next();
-			  if(_bucketIt!=null && _bucketIt.hasNext()) {
-				  return e;
-			  }
+                return e;
+			}
 			  else {
 			
 			        if(hasNext()) {
@@ -463,6 +469,14 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override
 		public void remove() {
 			// TODO
+			if(_version!=_myVersion) {
+				throw new ConcurrentModificationException();
+			}
+			_bucketIt.remove();
+			_myVersion++;
+			_version++;
+			_numItems--;
+			
 		}
 	}
 	
