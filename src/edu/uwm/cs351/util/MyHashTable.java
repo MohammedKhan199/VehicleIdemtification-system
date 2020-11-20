@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import edu.uwm.cs.junit.LockedTestCase;
@@ -40,7 +38,6 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		if(_table==null || _table.length==0) {
 			return 0;
 		}
-		int n= key.hashCode();
 		return Math.abs(key.hashCode())%(_table.length);
 	}
 	
@@ -172,19 +169,23 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	@Override
 	public boolean containsKey(Object o) {
 		// TODO easy
+	assert _wellFormed() : "invariant broken at start of containsKey";
 		if(o==null)throw new NullPointerException();
 		K key =asKey(o);
 		int index=hash(o);
 		if(_table[index]==null) {
+	assert _wellFormed() : "invariant broken at end of containsKey";
 			return false;
 		}
 		Iterator<MyEntry<K, V>> it= _table[index].iterator();
 		while(it.hasNext()) {
 			MyEntry<K,V> e=it.next();
 			if(e.key.equals(key)) {
+	assert _wellFormed() : "invariant broken at end of containsKey";
 				return true;
 			}
 		}
+    assert _wellFormed() : "invariant broken at end of containsKey";
 		return false;
 	}
 
@@ -197,22 +198,25 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	@Override
 	public V get(Object o) {
 		// TODO
+	assert _wellFormed() : "invariant broken at start of get";
         if(o==null) throw new IllegalArgumentException();
 		
 		K key= asKey(o);
 		
 		int index=hash(key);
 		if(_table[index]==null || key==null) {
+	assert _wellFormed() : "invariant broken at end of get";
 			return null;
 		}
 		Iterator<MyEntry<K, V>> it= _table[index].iterator();
 		while(it.hasNext()) {
 			MyEntry<K,V> e= it.next();
 			if(e.key.equals(key)) {
+	assert _wellFormed() : "invariant broken at end of get";
 				return e.value;
 			}
 		}
-		
+	assert _wellFormed() : "invariant broken at end of get";
 		return null;
 
 	}
@@ -242,6 +246,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			_table[index].add(newentry);
 			_numItems++;
 			_version++;
+		assert _wellFormed() : "invariant broken at end of put";
 			return null;
 		}
 		else {
@@ -252,6 +257,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 					V oldvalue=e.value;
 					e.setValue(value);
 					_version++;
+		assert _wellFormed() : "invariant broken at end of put";
 					return oldvalue;
 				}
 			}
@@ -272,17 +278,19 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	 */
 	public V remove(Object o) {
 		// TODO
+	assert _wellFormed() : "invariant broken at start of remove";
 		if(o==null)throw new IllegalArgumentException();
 		
 		K key= asKey(o);
 		int index=hash(key);
 		if(key==null || _table[index]==null) {
 			_version++;
+   assert _wellFormed() : "invariant broken at end of remove";
 			return null;
 		}
 		
 		Iterator<MyEntry<K,V>> it = _table[index].iterator();
-		
+	
 		while(it.hasNext()) {
 			MyEntry<K,V> e= it.next();
 			if(e.key.equals(key)) {
@@ -290,10 +298,12 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 				_table[index].remove(e);
 				_numItems--;
 				_version++;
+	assert _wellFormed() : "invariant broken at end of remove";
 				return value;
 			}
 		}
 	    _version++;
+	 assert _wellFormed() : "invariant broken at end of remove";
 		return null;
 	}
 	
@@ -310,7 +320,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		Iterator<MyEntry<K, V>> it=null;
 		int index=0;
 		while(i<_table.length) {
-			if(_table[i]!=null) {
+			if(_table[i]!=null &&!_table[i].isEmpty()) {
 			   it =_table[i].iterator();
 			    while(it.hasNext()) {
 			    	
@@ -359,18 +369,23 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 		@Override 
 		public boolean contains(Object o) {
 			// TODO: Hint: Use the outer class to your advantage
-			return false;
+			return containsKey(o);
 		}
 		
 		@Override 
 		public boolean remove(Object o) {
 			// TODO: Hint: Use the outer class to your advantage
-			return false;
+			MyEntry<K,V> e= asEntry(o);
+			Object key= e.key;
+			MyHashTable.this.remove(key);
+			return true;
 		}
 		
 		@Override 
 		public void clear() {
 			// TODO: easy
+			_table=makeArray(10);
+			_numItems=0;
 		}
 	}
 	
@@ -437,6 +452,10 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 				}
 				_nextBucket++;
 			}
+			
+			if(_bucketIt==null) {
+				_nextBucket=_table.length;
+			}
 		
 		  
 		}
@@ -467,7 +486,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 			        	_bucketIt=_table[_nextBucket].iterator();
 			        	_nextBucket+=1;
 			        	while(_nextBucket<_table.length) {
-			        		if(_table[_nextBucket]!=null) {
+			        		if(_table[_nextBucket]!=null && !_table[_nextBucket].isEmpty()) {
 			        			break;
 			        		}
 			        		_nextBucket++;
