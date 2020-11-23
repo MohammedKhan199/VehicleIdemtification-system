@@ -187,7 +187,7 @@ public class TestHashTable extends LockedTestCase{
 		
 		entrySet.clear();
 		assertEquals(0,entrySet.size());
-		assertEquals(0,ht.size());
+
 	}
 	
 	//Iterator
