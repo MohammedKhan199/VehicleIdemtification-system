@@ -25,14 +25,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	
 	
 	
-	/**	Compute hash code using table size.
-	 * The result must be in the range [0,table.length-1].
-	 * Do NOT either check or depend on the invariant.
-	 * This method may be called when the invariant is broken, e.g. during a rehash()
-	 * and it is ALSO called while CHECKING the invariant!
-	 * @param key the object to hash
-	 * @return the key's hash value
-	 */
+	
 	private int hash(Object key) {
 		// TODO
 		if(_table==null || _table.length==0) {
@@ -47,15 +40,7 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	}
 	
 	private boolean _wellFormed() {
-		// Invariant:
-		// 0. the table is not null
-		// 1. The total number of entries in all collections is equal to _numItems
-		// 2. No entry has a null key or value
-		// 3. Each entry is in the correct bucket: the hash code mod the table length is the bucket it is in.
-		// 4. There are no duplicate entries or keys in each bucket.
-		//		NB: We only have to check for duplicates within the context of each bucket: Why?
-		// 5. The table never has more than LOAD_FACTOR*_table.length entries
-		// TODO
+		
 		
 		if(_table==null) {
 			return _report("Table is null");
@@ -134,24 +119,11 @@ public class MyHashTable<K,V> extends AbstractMap<K,V> {
 	private Collection<MyEntry<K,V>>[] makeArray(int length) {
 		return (Collection<MyEntry<K,V>>[]) new Collection[length];}
 	
-	/**	The following is a private method to cast the
-	 * given object to the key type. If it is null this method returns null.
-	 * This method is useful only to contain warnings in one place.
-	 * NB: if it is not of the key type a runtime exception may occur later.
-	 * But as long as you only assume it is an Object, you won't have troubles.
-	 * @param x object to cast
-	 * @return x cast as type K, or null
-	 */
+	
 	@SuppressWarnings("unchecked")
 	private K asKey(Object x) {return (K) x;}
 	
-	/**	The following is a private method to cast the
-	 * given object to the entry type. If it is null this method returns null.
-	 * This method is useful only to contain warnings in one place.
-	 * NB: if it is not of the entry type a runtime exception will occur.
-	 * @param x object to cast
-	 * @return x cast as type MyEntry<K,V>, or null
-	 */
+	
 	@SuppressWarnings("unchecked")
 	private MyEntry<K,V> asEntry(Object x) {return (MyEntry<K,V>) x;}
 	
